@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/src/tcp_net/tcp_client.js",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Node: Nodemon",
+            "processId": "${command:PickProcess}",
+            "restart": true,
+            "protocol": "inspector",
+        },
+    ]
+}
