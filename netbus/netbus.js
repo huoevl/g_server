@@ -4,8 +4,18 @@ const log = require("../utils/log");
 const tcppkg = require("./tcppkg");
 
 let netbus = {
+    /** json协议 */
     PROTO_JSON: 1,
+    /** 二进制协议 */
     PROTO_BUFF: 2,
+    /** 开启tcp服务器 */
+    start_tcp_server: start_tcp_server,
+    /** 发送数据 */
+    session_send: session_send,
+    /** 关闭客户端 */
+    session_close: session_close,
+    /** 开启ws服务器 */
+    start_ws_server: start_ws_server,
 };
 
 let global_session_map = {};
@@ -197,13 +207,5 @@ function isString(obj) {
     return Object.prototype.toString.call(obj) === "[object String]";
 }
 
-
-
-
-netbus.start_tcp_server = start_tcp_server;
-netbus.session_send = session_send;
-netbus.session_close = session_close;
-
-netbus.start_ws_server = start_ws_server;
 
 module.exports = netbus;

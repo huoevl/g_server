@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Launch Program",
-            "program": "${workspaceFolder}/src/tcp_net/tcp_client.js",
+            "program": "${workspaceFolder}/test/test_proto_mgr.js",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"

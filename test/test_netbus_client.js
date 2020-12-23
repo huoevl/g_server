@@ -45,7 +45,7 @@ function testTwo(data1, data2) {
 
 
 
-let ws_sock = new ws('ws://127.0.0.1:7081/');
+let ws_sock = new ws('ws://127.0.0.1:7082/');
 ws_sock.on("open", () => {
     let buf = Buffer.from("呵呵呵2");
     // ws_sock.send(buf);
