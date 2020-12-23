@@ -4,10 +4,6 @@ const log = require("../utils/log");
 const tcppkg = require("./tcppkg");
 
 let netbus = {
-    /** json协议 */
-    PROTO_JSON: 1,
-    /** 二进制协议 */
-    PROTO_BUFF: 2,
     /** 开启tcp服务器 */
     start_tcp_server: start_tcp_server,
     /** 发送数据 */
@@ -72,7 +68,7 @@ function add_client_session_event(session, proto_type) {
             return;
         }
         while (offset + pkg_len <= last_pkg.length) {
-            if (session.proto_type == netbus.PROTO_JSON) {
+            if (session.proto_type == proto_mgr.PROTO_JSON) {
                 //json协议
                 let json_str = last_pkg.toString("utf-8", offset + 2, offset + pkg_len);
                 if (!json_str) {
@@ -188,7 +184,7 @@ function ws_add_session_event(session, proto_type) {
         on_session_exit(session)
     })
     session.on("message", (data) => {
-        if (session.proto_type == netbus.PROTO_JSON) {
+        if (session.proto_type == proto_mgr.PROTO_JSON) {
             if (!isString(data)) {
                 session_close(session);
                 return;

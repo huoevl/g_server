@@ -7,19 +7,19 @@ let test = {
     name: "哈哈",
     age: "9000"
 }
-let buf = proto_mgr.encode_cmd(netbus.PROTO_JSON, 1, 1, test);
+let buf = proto_mgr.encode_cmd(proto_mgr.PROTO_JSON, 1, 1, test);
 log.info("json encode_cmd buf: ", buf);
 log.error("json encode_cmd length: ", buf.length);
 
-let str = proto_mgr.decode_cmd(netbus.PROTO_JSON, buf);
+let str = proto_mgr.decode_cmd(proto_mgr.PROTO_JSON, buf);
 log.info("json decode_cmd buf: ", str);
 //二进制
 proto_mgr.reg_buf_encoder(1, 1, encode_cmd_1_1);
 proto_mgr.reg_buf_decoder(1, 1, decode_cmd_1_1);
-buf = proto_mgr.encode_cmd(netbus.PROTO_BUFF, 1, 1, test);
+buf = proto_mgr.encode_cmd(proto_mgr.PROTO_BUFF, 1, 1, test);
 log.info("buff encode_cmd buf: ", buf);
 log.error("buff encode_cmd length: ", buf.length);
-str = proto_mgr.decode_cmd(netbus.PROTO_BUFF, buf);
+str = proto_mgr.decode_cmd(proto_mgr.PROTO_BUFF, buf);
 log.info("buff decode_cmd buf: ", str);
 
 //二进制 编码解码

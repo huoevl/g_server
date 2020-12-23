@@ -1,5 +1,4 @@
 const log = require("../utils/log");
-const netbus = require("./netbus");
 /**
  * 协议管理模块
  * （1）服务号、命令号不能为0
@@ -10,6 +9,10 @@ const netbus = require("./netbus");
  * （6）utf-8
  */
 let proto_mgr = {
+    /** json协议 */
+    PROTO_JSON: 1,
+    /** 二进制协议 */
+    PROTO_BUFF: 2,
     /** 编码 */
     encode_cmd: encode_cmd,
     /** 解码 */
@@ -67,7 +70,7 @@ function _json_decode(cmd_json) {
  */
 function encode_cmd(proto_type, stype, ctype, body) {
     let buf = null;
-    if (proto_type == netbus.PROTO_JSON) {
+    if (proto_type == proto_mgr.PROTO_JSON) {
         let str = _json_encode(stype, ctype, body);
         return encrypt_cmd(str);
     } else {
@@ -91,7 +94,7 @@ function decode_cmd(proto_type, str_or_buf) {
     //解密
     str_or_buf = decrypt_cmd(str_or_buf);
     //json协议
-    if (proto_type == netbus.PROTO_JSON) {
+    if (proto_type == proto_mgr.PROTO_JSON) {
         return _json_decode(str_or_buf);
     }
     //buf协议
