@@ -13,6 +13,6 @@ let tcppkg = {
         buf.writeInt16LE(2 + data.length, 0);
         buf.fill(data, 2);
         return buf;
-    }
+    },
 }
 module.exports = tcppkg;

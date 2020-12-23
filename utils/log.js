@@ -92,7 +92,7 @@ function log(level, message) {
             levelString = '[]';
         } break;
     }
-    let output = util.format('%s %s(%d,%d) %s', levelString, fileName, lineNumber, columnNumber, message);
+    let output = util.format('%s %s(%d,%d) %s %s', levelString, fileName, lineNumber, columnNumber,  COLOR.RESET ,message);
     if (!coloredOutput) {
         process.stdout.write(output + '\n');
     } else {
