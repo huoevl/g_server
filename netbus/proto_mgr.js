@@ -97,6 +97,9 @@ function decode_cmd(proto_type, str_or_buf) {
     if (proto_type == proto_mgr.PROTO_JSON) {
         return _json_decode(str_or_buf);
     }
+    if (str_or_buf.length < 4) {
+        return null;
+    }
     //buf协议
     let stype = str_or_buf.readUInt16LE(0);
     let ctype = str_or_buf.readUInt16LE(2);

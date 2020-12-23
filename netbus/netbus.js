@@ -1,6 +1,8 @@
 const net = require("net");
 const ws = require("ws");
 const log = require("../utils/log");
+const proto_mgr = require("./proto_mgr");
+const service_mgr = require("./service_mgr");
 const tcppkg = require("./tcppkg");
 
 let netbus = {
@@ -24,7 +26,7 @@ let global_session_key = 0;
  * @param {*} proto_type 协议类型
  */
 function start_tcp_server(ip, port, proto_type) {
-    log.info("start tcp server ...", ip, port);
+    log.info("start tcp server ...", ip, port, proto_type == proto_mgr.PROTO_BUFF ? "PROTO_BUFF" : "PROTO_JSON");
     let server = net.createServer((session) => {
         add_client_session_event(session, proto_type);
     });
@@ -107,6 +109,7 @@ function add_client_session_event(session, proto_type) {
 /** 客户端退出 */
 function on_session_exit(session) {
     log.info("session exit !!!");
+    service_mgr.on_client_lost_connect(session);
     session.last_pkg = null;
     if (global_session_map[global_session_key]) {
         global_session_map[global_session_key] = null;
@@ -132,6 +135,10 @@ function on_session_enter(session, proto_type, is_ws) {
 function on_session_recv_cmd(session, str_or_buf) {
     // log.info(str_or_buf);
     log.info(str_or_buf.toString());
+    let flag = service_mgr.on_recv_client_cmd(session, str_or_buf);
+    if (!flag) {
+        session_close(session);
+    }
 }
 /** 发送数据包 */
 function session_send(session, cmd) {
@@ -159,7 +166,7 @@ function session_close(session) {
  * @param {*} proto_type 
  */
 function start_ws_server(ip, port, proto_type) {
-    log.info("start ws server ...", ip, port);
+    log.info("start ws server ...", ip, port, proto_type == proto_mgr.PROTO_BUFF ? "PROTO_BUFF" : "PROTO_JSON");
     let server = new ws.Server({
         port: port,
         host: ip,

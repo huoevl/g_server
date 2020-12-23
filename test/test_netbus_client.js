@@ -1,5 +1,6 @@
 const net = require("net");
 const ws = require("ws");
+const proto_mgr = require("../netbus/proto_mgr");
 const tcppkg = require("../netbus/tcppkg");
 
 //tcp test
@@ -9,8 +10,10 @@ let sock = net.connect({
 });
 sock.on("connect", () => {
     console.log("client connect !!!");
-    sock.write(tcppkg.package_data("Hello"));
-    
+
+    //================tcp test==============
+    // sock.write(tcppkg.package_data("Hello"));
+
     // let strArr = testTimout("Hel", "lo");
     // sock.write(strArr[0]);
     // setTimeout(() => {
@@ -18,6 +21,12 @@ sock.on("connect", () => {
     // }, 2000);
 
     // sock.write(testTwo("start", "hello"));
+
+    //==============test service mgr===========
+    //1,2,body='hello talk room !!!';
+    let cmd = proto_mgr.encode_cmd(proto_mgr.PROTO_JSON, 1, 2, 'hello talk room !!!');
+    cmd = tcppkg.package_data(cmd);
+    sock.write(cmd);
 
 })
 
@@ -44,10 +53,13 @@ function testTwo(data1, data2) {
 }
 
 
+//test ws
+// let ws_sock = new ws('ws://127.0.0.1:7082/');
+// ws_sock.on("open", () => {
+//     let buf = Buffer.from("呵呵呵2");
+//     // ws_sock.send(buf);
+//     ws_sock.send("呵呵呵呵")
+// })
 
-let ws_sock = new ws('ws://127.0.0.1:7082/');
-ws_sock.on("open", () => {
-    let buf = Buffer.from("呵呵呵2");
-    // ws_sock.send(buf);
-    ws_sock.send("呵呵呵呵")
-})
+
+
