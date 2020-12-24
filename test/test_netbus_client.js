@@ -2,7 +2,7 @@ const net = require("net");
 const ws = require("ws");
 const proto_mgr = require("../netbus/proto_mgr");
 const tcppkg = require("../netbus/tcppkg");
-
+require("./talk_room_proto");
 //tcp test
 let sock = net.connect({
     port: 7080,
@@ -23,11 +23,22 @@ sock.on("connect", () => {
     // sock.write(testTwo("start", "hello"));
 
     //==============test service mgr===========
-    //1,2,body='hello talk room !!!';
-    let cmd = proto_mgr.encode_cmd(proto_mgr.PROTO_JSON, 1, 2, 'hello talk room !!!');
-    cmd = tcppkg.package_data(cmd);
-    sock.write(cmd);
+    //1,2,body='hello talk room !!!';  json
+    // let cmd = proto_mgr.encode_cmd(proto_mgr.PROTO_JSON, 1, 2, 'hello talk room !!!');
+    // cmd = tcppkg.package_data(cmd);
+    // sock.write(cmd);
 
+    //1,1,body={name:xxx,age:xxx};  buf
+    // let data = { name: "Black", age: "10" };
+    // let cmd = proto_mgr.encode_cmd(proto_mgr.PROTO_BUFF, 1, 1, data);
+    // cmd = tcppkg.package_data(cmd);
+    // sock.write(cmd);
+})
+sock.on("error", () => {
+    console.error("退出")
+})
+sock.on("close", () => {
+    console.error("关闭")
 })
 
 /** 测试 模拟一个大数据包分两次发送 */
@@ -54,12 +65,22 @@ function testTwo(data1, data2) {
 
 
 //test ws
-// let ws_sock = new ws('ws://127.0.0.1:7082/');
-// ws_sock.on("open", () => {
-//     let buf = Buffer.from("呵呵呵2");
-//     // ws_sock.send(buf);
-//     ws_sock.send("呵呵呵呵")
-// })
+let ws_sock = new ws('ws://127.0.0.1:7082/');
+ws_sock.on("open", () => {
+    console.log("ws client connect !!!");
+    // let buf = Buffer.from("呵呵呵2");
+    // // ws_sock.send(buf);
+    // ws_sock.send("呵呵呵呵")
+    let data = { name: "Black", age: "10" };
+    let cmd = proto_mgr.encode_cmd(proto_mgr.PROTO_BUFF, 1, 1, data)
+    ws_sock.send(cmd);
+})
+ws_sock.on("error", (err) => {
+    console.log("ws error")
+})
+ws_sock.on("close", () => {
+    console.log("ws close");
+})
 
 
 

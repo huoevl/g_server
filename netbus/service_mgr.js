@@ -43,7 +43,7 @@ function on_recv_client_cmd(session, str_or_buf) {
     let stype = cmd[0];
     let ctype = cmd[1];
     let body = cmd[2];
-    log.info(sytpe, ctype, body);
+    log.info(stype, ctype, body);
     if (service_modules[stype]) {
         service_modules[stype].on_recv_player_cmd(session, ctype, body);
     }

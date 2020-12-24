@@ -55,7 +55,12 @@ function _json_encode(stype, ctype, body) {
  * @param {*} cmd_json 数据
  */
 function _json_decode(cmd_json) {
-    let cmd = JSON.parse(cmd_json);
+    let cmd = null;
+    try {
+        cmd = JSON.parse(cmd_json);
+    } catch (e) {
+        log.error(e);
+    }
     if (!cmd || !cmd[0] || !cmd[1] || !cmd[2]) {
         return null;
     }

@@ -103,7 +103,7 @@ function add_client_session_event(session, proto_type) {
         session.last_pkg = last_pkg;
     });
     session.on("error", (err) => {
-        on_session_exit(session);
+        log.error("tcp client listen error");
     });
 }
 /** 客户端退出 */
@@ -188,7 +188,7 @@ function ws_add_session_event(session, proto_type) {
         on_session_exit(session)
     })
     session.on("error", (err) => {
-        on_session_exit(session)
+        log.error("ws client listen error");
     })
     session.on("message", (data) => {
         if (session.proto_type == proto_mgr.PROTO_JSON) {

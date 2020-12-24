@@ -1,5 +1,5 @@
 const log = require("../utils/log");
-
+require("./talk_room_proto");
 let service = {
     /** 服务号 */
     stype: 1,
