@@ -1,6 +1,7 @@
 const netbus = require("../netbus/netbus");
 const proto_mgr = require("../netbus/proto_mgr");
 const log = require("../utils/log");
+require("../3rd/extends");
 
 //json
 let test = {
@@ -24,8 +25,8 @@ log.info("buff decode_cmd buf: ", str);
 
 //二进制 编码解码
 function encode_cmd_1_1(body) {
-    let offset = body["name"].length;
-    let len = 2 + 2 + 2 + offset + 2 + body["age"].length;
+    let offset = body["name"].utf8_byte_len();
+    let len = 2 + 2 + 2 + offset + 2 + body["age"].utf8_byte_len();
     let buf = Buffer.allocUnsafe(len);
     buf.writeUInt16LE(1, 0);
     buf.writeUInt16LE(1, 2);
@@ -34,7 +35,7 @@ function encode_cmd_1_1(body) {
     buf.write(body["name"], 4 + 2,);
 
     offset = 6 + offset;
-    buf.writeUInt16LE(body["age"].length, offset);
+    buf.writeUInt16LE(body["age"].utf8_byte_len(), offset);
     buf.fill(body["age"], offset + 2);
 
     return buf;
