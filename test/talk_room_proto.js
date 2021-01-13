@@ -1,6 +1,30 @@
 const proto_mgr = require("../netbus/proto_mgr");
 require("../3rd/extends");
-//二进制 编码解码
+/*
+客户端：进入
+    1,1,body={uname:"名字",usex: 0|1};
+    返回：
+    1,1,status=OK
+客户端：离开
+    1，2，null,
+    返回：
+    1,2,status=OK;
+UserEnter 主动发送：
+    1,3,body=uinfo{uname:"名字",usex: 0|1};
+UserExit 主动发送
+    1,4,body=uinfo{uname:"名字",usex: 0|1};
+客户端请求发送消息
+    1,5,body="消息内容"
+    返回：
+    1,5,body={0:status,1:uname,2:usex,3:msg};
+Usermsg：服务器主动发送
+    1,6,body={0:uname,1:usex,2:msg};
+*/
+
+/**
+ * 二进制 编码解码
+ * @param {*} body 
+ */
 function encode_cmd_1_1(body) {
     let offset = body["name"].utf8_byte_len();
     let len = 2 + 2 + 2 + offset + 2 + body["age"].utf8_byte_len();

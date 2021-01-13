@@ -9,7 +9,7 @@ let netbus = {
     /** 开启tcp服务器 */
     start_tcp_server: start_tcp_server,
     /** 发送数据 */
-    session_send: session_send,
+    // session_send: session_send,
     /** 关闭客户端 */
     session_close: session_close,
     /** 开启ws服务器 */
@@ -109,8 +109,10 @@ function add_client_session_event(session, proto_type) {
 /** 客户端退出 */
 function on_session_exit(session) {
     log.info("session exit !!!");
-    service_mgr.on_client_lost_connect(session);
     session.last_pkg = null;
+    session.is_connected = false;
+    service_mgr.on_client_lost_connect(session);
+
     if (global_session_map[global_session_key]) {
         global_session_map[global_session_key] = null;
         delete global_session_map[global_session_key];
@@ -126,6 +128,11 @@ function on_session_enter(session, proto_type, is_ws) {
     session.last_pkg = null;
     session.is_ws = is_ws;
     session.proto_type = proto_type;
+    session.is_connected = true;
+
+    //扩展session的方法
+    session.send_encoded_cmd = session_send_encoded_cmd;
+    session.send_cmd = session_send_cmd;
 
     global_session_map[global_session_key] = session;
     session.session_key = global_session_key;
@@ -140,13 +147,29 @@ function on_session_recv_cmd(session, str_or_buf) {
         session_close(session);
     }
 }
-/** 发送数据包 */
-function session_send(session, cmd) {
-    if (!session.is_ws) {
+/** 发送未编码的数据包 */
+function session_send_cmd(stype, ctype, body) {
+    let self = this;
+    if (!self.is_connected) {
+        return;
+    }
+    let cmd = proto_mgr.encode_cmd(self.proto_type, stype, ctype, body);
+    if (cmd) {
+        self.send_encoded_cmd(cmd);
+    }
+
+}
+/** 发送已经编码的数据包 */
+function session_send_encoded_cmd(cmd) {
+    let self = this;
+    if (!self.is_connected) {
+        return;
+    }
+    if (!self.is_ws) {
         let data = tcppkg.package_data(cmd);
-        session.wirte(data)
+        self.wirte(data)
     } else {
-        session.send(cmd);
+        self.send(cmd);
     }
 }
 /** 关闭session */
