@@ -67,7 +67,7 @@ let service = {
 }
 /** 用户进来 */
 function on_user_enter_talkRoom(session, body) {
-    if (!body.uname || !body.usex) {
+    if (body.uname == void (0) || body.usex == void (0)) {
         session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.INVALD_PARMAS);
         return;
     }
