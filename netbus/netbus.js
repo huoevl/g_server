@@ -141,7 +141,7 @@ function on_session_enter(session, proto_type, is_ws) {
 /** 数据 */
 function on_session_recv_cmd(session, str_or_buf) {
     // log.info(str_or_buf);
-    log.info(str_or_buf.toString());
+    // log.info(str_or_buf.toString());
     let flag = service_mgr.on_recv_client_cmd(session, str_or_buf);
     if (!flag) {
         session_close(session);

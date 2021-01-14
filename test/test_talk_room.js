@@ -130,7 +130,7 @@ function on_user_exit_talkroom(session, is_lost_connect) {
     delete room[session.session_key];
     //发送成功离开
     if (!is_lost_connect) {
-        session.send_cmd(STYPE_TALKROOM, TalkCmd, Response.OK);
+        session.send_cmd(STYPE_TALKROOM, TalkCmd.Exit, Response.OK);
     }
 }
 

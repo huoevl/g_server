@@ -61,7 +61,7 @@ function _json_decode(cmd_json) {
     } catch (e) {
         log.error(e);
     }
-    if (!cmd || !cmd[0] || !cmd[1] || !cmd[2]) {
+    if (!cmd || !cmd[0] || !cmd[1]) {
         return null;
     }
     return cmd;
