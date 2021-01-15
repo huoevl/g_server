@@ -154,6 +154,6 @@ function on_user_send_msg(session, msg) {
         0: room[session.session_key].uinfo.uname,
         1: room[session.session_key].uinfo.usex,
         2: msg
-    })
+    }, session)
 }
 module.exports = service;
