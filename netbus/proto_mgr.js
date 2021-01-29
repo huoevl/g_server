@@ -84,7 +84,8 @@ function encode_cmd(proto_type, stype, ctype, body) {
         if (!encoders[key]) {
             return null;
         }
-        buf = encoders[key](body);
+        // buf = encoders[key](body);//为了通用
+        buf = encoders[key](stype, ctype, body);
     }
     //加密
     buf = encrypt_cmd(buf);

@@ -1,7 +1,6 @@
 const netbus = require("../netbus/netbus");
 const proto_mgr = require("../netbus/proto_mgr");
 const log = require("../utils/log");
-require("../3rd/extends");
 
 //json
 let test = {

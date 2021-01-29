@@ -1,3 +1,4 @@
+require("../init");
 const netbus = require("../netbus/netbus");
 const proto_mgr = require("../netbus/proto_mgr");
 const service_mgr = require("../netbus/service_mgr");

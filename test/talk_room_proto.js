@@ -1,5 +1,4 @@
 const proto_mgr = require("../netbus/proto_mgr");
-require("../3rd/extends");
 /*
 客户端：进入
     1,1,body={uname:"名字",usex: 0|1};
