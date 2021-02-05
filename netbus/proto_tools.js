@@ -8,7 +8,10 @@ let proto_tools = {
 	write_int16, write_int16,
 
 	read_int32: read_int32,
-	write_int32, write_int32,
+    write_int32, write_int32,
+    
+    read_uint32: read_uint32,
+	write_uint32, write_uint32,
 
 	read_float: read_float,
 	write_float: write_float,
@@ -50,6 +53,13 @@ function read_int32(cmd_buf, offset) {
 }
 function write_int32(cmd_buf, offset, value) {
     cmd_buf.writeInt132LE(value, offset);
+}
+
+function read_uint32(cmd_buf, offset) {
+    return cmd_buf.readUInt32LE(offset);
+}
+function write_uint32(cmd_buf, offset, value) {
+    cmd_buf.writeUInt132LE(value, offset);
 }
 
 function read_float(cmd_buf, offset) {

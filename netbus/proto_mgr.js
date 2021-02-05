@@ -1,4 +1,5 @@
 const log = require("../utils/log");
+const proto_tools = require("./proto_tools");
 /**
  * 协议管理模块
  * （1）服务号、命令号不能为0
@@ -21,6 +22,12 @@ let proto_mgr = {
     reg_encoder: reg_buf_encoder,
     /** 二进制解码 */
     reg_decoder: reg_buf_decoder,
+    /** 加密 */
+    encrypt_cmd: encrypt_cmd,
+    /** 解密 */
+    decrypt_cmd: decrypt_cmd,
+    /** 解码出头 */
+    decode_cmd_header: decode_cmd_header,
 }
 /**
  * 加密
@@ -77,7 +84,8 @@ function encode_cmd(proto_type, stype, ctype, body) {
     let buf = null;
     if (proto_type == proto_mgr.PROTO_JSON) {
         let str = _json_encode(stype, ctype, body);
-        return encrypt_cmd(str);
+        // return encrypt_cmd(str);
+        return str;
     } else {
         //buf协议
         let key = get_key(stype, ctype);
@@ -88,8 +96,26 @@ function encode_cmd(proto_type, stype, ctype, body) {
         buf = encoders[key](stype, ctype, body);
     }
     //加密
-    buf = encrypt_cmd(buf);
+    // buf = encrypt_cmd(buf);
     return buf;
+}
+/** 解码出头 */
+function decode_cmd_header(proto_type, str_or_buf) {
+    let cmd = {};
+    if (proto_type == proto_mgr.PROTO_JSON) {
+        let json_cmd = _json_decode(str_or_buf);//这里还要改  半成品
+        cmd[0] = json_cmd[0];
+        cmd[1] = json_cmd[1];
+        return cmd;
+    }
+    if (str_or_buf.length < 4) {
+        return null;
+    }
+    //buf协议
+
+    cmd[0] = proto_tools.read_int16(str_or_buf, 0);
+    cmd[1] = proto_tools.read_int16(str_or_buf, 2);
+    return cmd;
 }
 /**
  * 解码 返回{0:stype, 1: ctype, 2: body}
@@ -98,7 +124,7 @@ function encode_cmd(proto_type, stype, ctype, body) {
  */
 function decode_cmd(proto_type, str_or_buf) {
     //解密
-    str_or_buf = decrypt_cmd(str_or_buf);
+    // str_or_buf = decrypt_cmd(str_or_buf);
     //json协议
     if (proto_type == proto_mgr.PROTO_JSON) {
         return _json_decode(str_or_buf);
@@ -158,5 +184,7 @@ function reg_buf_decoder(stype, ctype, decode_func) {
     }
     decoders[key] = decode_func;
 }
+
+
 
 module.exports = proto_mgr;

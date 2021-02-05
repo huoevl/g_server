@@ -36,17 +36,30 @@ function on_client_lost_connect(session) {
  */
 function on_recv_client_cmd(session, str_or_buf) {
     //解码命令
-    let cmd = proto_mgr.decode_cmd(session.proto_type, str_or_buf);
+    console.log("加密解密：", session.is_encrypt);
+    if (session.is_encrypt) {
+        str_or_buf = proto_mgr.decrypt_cmd(str_or_buf);
+    }
+    let cmd = proto_mgr.decode_cmd_header(session.proto_type, str_or_buf);
     if (!cmd) {
         return false;
     }
     let stype = cmd[0];
     let ctype = cmd[1];
+    if (!service_modules[stype]) {
+        return false;
+    }
+    if (service_modules[stype].is_transfer) {
+        service_modules[stype].on_recv_player_cmd(session, ctype, null, str_or_buf);
+        return true;
+    }
+    cmd = proto_mgr.decode_cmd(session.proto_type, str_or_buf);
+    if (!cmd) {
+        return false;
+    }
     let body = cmd[2];
     log.info(stype, ctype, body);
-    if (service_modules[stype]) {
-        service_modules[stype].on_recv_player_cmd(session, ctype, body);
-    }
+    service_modules[stype].on_recv_player_cmd(session, ctype, body, str_or_buf);
     return true;
 }
 

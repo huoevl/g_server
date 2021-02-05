@@ -24,11 +24,12 @@ let global_session_key = 0;
  * @param {*} ip ip
  * @param {*} port 端口
  * @param {*} proto_type 协议类型
+ * @param {*} is_encrypt 是否加密
  */
-function start_tcp_server(ip, port, proto_type) {
+function start_tcp_server(ip, port, proto_type, is_encrypt) {
     log.info("start tcp server ...", ip, port, proto_type == proto_mgr.PROTO_BUFF ? "PROTO_BUFF" : "PROTO_JSON");
     let server = net.createServer((session) => {
-        add_client_session_event(session, proto_type);
+        add_client_session_event(session, proto_type, is_encrypt);
     });
     //server
     server.listen({
@@ -44,9 +45,9 @@ function start_tcp_server(ip, port, proto_type) {
     })
 }
 /** 给客户端添加监听 */
-function add_client_session_event(session, proto_type) {
+function add_client_session_event(session, proto_type, is_encrypt) {
 
-    on_session_enter(session, proto_type, false);
+    on_session_enter(session, proto_type, false, is_encrypt);
 
     session.on("close", () => {
         on_session_exit(session);
@@ -119,7 +120,7 @@ function on_session_exit(session) {
     }
 }
 /** 客户端进来 */
-function on_session_enter(session, proto_type, is_ws) {
+function on_session_enter(session, proto_type, is_ws, is_encrypt) {
     if (is_ws) {
         log.info("ws client comming", session._socket.remoteAddress, session._socket.remotePort);
     } else {
@@ -129,6 +130,7 @@ function on_session_enter(session, proto_type, is_ws) {
     session.is_ws = is_ws;
     session.proto_type = proto_type;
     session.is_connected = true;
+    session.is_encrypt = is_encrypt;
 
     //扩展session的方法
     session.send_encoded_cmd = session_send_encoded_cmd;
@@ -165,6 +167,10 @@ function session_send_encoded_cmd(cmd) {
     if (!self.is_connected) {
         return;
     }
+    console.log("加密解密netbus：", self.is_encrypt);
+    if (self.is_encrypt) {
+        cmd = proto_mgr.encrypt_cmd(cmd);
+    }
     if (!self.is_ws) {
         let data = tcppkg.package_data(cmd);
         self.wirte(data)
@@ -187,15 +193,16 @@ function session_close(session) {
  * @param {*} ip 
  * @param {*} port 
  * @param {*} proto_type 
+ * @param {*} is_encrypt 是否加密
  */
-function start_ws_server(ip, port, proto_type) {
+function start_ws_server(ip, port, proto_type, is_encrypt) {
     log.info("start ws server ...", ip, port, proto_type == proto_mgr.PROTO_BUFF ? "PROTO_BUFF" : "PROTO_JSON");
     let server = new ws.Server({
         port: port,
         host: ip,
     })
     server.on("connection", (session) => {
-        ws_add_session_event(session, proto_type);
+        ws_add_session_event(session, proto_type, is_encrypt);
     })
     server.on("error", (err) => {
         log.error("ws server listen error");
@@ -205,8 +212,8 @@ function start_ws_server(ip, port, proto_type) {
     })
 }
 /** 添加事件 */
-function ws_add_session_event(session, proto_type) {
-    on_session_enter(session, proto_type, true);
+function ws_add_session_event(session, proto_type, is_encrypt) {
+    on_session_enter(session, proto_type, true, is_encrypt);
     session.on("close", (err) => {
         on_session_exit(session)
     })

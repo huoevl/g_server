@@ -1,1 +1,1 @@
-console.log("getway.js");
+//网关服务器

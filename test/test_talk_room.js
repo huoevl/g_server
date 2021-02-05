@@ -35,6 +35,8 @@ let service = {
     stype: STYPE_TALKROOM,
     /** 服务名 */
     name: "talk room",
+    /** 是否为转发模块 */
+    is_transfer: false,
     /** 每个服务初始化调用 */
     init: function () {
         let self = this;
@@ -43,7 +45,7 @@ let service = {
 
 
     /** 每个服务受到数据调用 */
-    on_recv_player_cmd: function (session, ctype, body) {
+    on_recv_player_cmd: function (session, ctype, body, raw_cmd) {
         let self = this;
         log.info(self.name + " on_recv_player_cmd: ", ctype, body);
         switch (ctype) {
