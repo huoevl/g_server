@@ -18,9 +18,9 @@ let proto_mgr = {
     /** 解码 */
     decode_cmd: decode_cmd,
     /** 二进制编码 */
-    reg_buf_encoder: reg_buf_encoder,
+    reg_encoder: reg_buf_encoder,
     /** 二进制解码 */
-    reg_buf_decoder: reg_buf_decoder,
+    reg_decoder: reg_buf_decoder,
 }
 /**
  * 加密

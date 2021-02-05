@@ -1,76 +1,149 @@
-const proto_mgr = require("../netbus/proto_mgr");
+var proto_mgr = require("../netbus/proto_mgr.js");
+var proto_tools = require("../netbus/proto_tools.js");
+var log = require("../utils/log.js");
+
 /*
-客户端：进入
-    1,1,body={uname:"名字",usex: 0|1};
-    返回：
-    1,1,status=OK
-客户端：离开
-    1，2，null,
-    返回：
-    1,2,status=OK;
-UserEnter 主动发送：
-    1,3,body=uinfo{uname:"名字",usex: 0|1};
-UserExit 主动发送
-    1,4,body=uinfo{uname:"名字",usex: 0|1};
+enter:
+客户端: 进入聊天室
+1, 1, body = {
+	uname: "名字",
+	usex: 0 or 1, // 性别
+};
+返回:
+1, 1, status = OK;
+
+exit
+客户端: 离开聊天室
+1, 2, body = null;
+返回:
+1, 2, status = OK;
+
 客户端请求发送消息
-    1,5,body="消息内容"
-    返回：
-    1,5,body={0:status,1:uname,2:usex,3:msg};
-Usermsg：服务器主动发送
-    1,6,body={0:uname,1:usex,2:msg};
+1, 5, body = "消息内容"
+返回
+1, 5, body = {
+	0: status, OK, 失败的状态码
+	1: uname,
+	2: usex,
+	3: msg, // 消息内容
+}
+
+UserMsg: 服务器主动发送
+1, 6, body = {
+	0: uname,
+	1: usex
+	2: msg,
+};
+
+UserExit: 主动发送
+1, 4, body = uinfo {
+	uname: "名字",
+	usex: 0, 1 // 性别
+} 
+
+UserEnter: 主动发送
+1, 3, body = uinfo{
+	uname: "名字",
+	usex: 0 or 1, // 性别
+}
+
 */
 
-/**
- * 二进制 编码解码
- * @param {*} body 
- */
-function encode_cmd_1_1(body) {
-    let offset = body["name"].utf8_byte_len();
-    let len = 2 + 2 + 2 + offset + 2 + body["age"].utf8_byte_len();
-    let buf = Buffer.allocUnsafe(len);
-    buf.writeUInt16LE(1, 0);
-    buf.writeUInt16LE(1, 2);
+function decode_enter_talkroom(cmd_buf) {
+	var cmd = {};
+	cmd[0] = proto_tools.read_int16(cmd_buf, 0);
+	cmd[1] = proto_tools.read_int16(cmd_buf, 2);
+	var body = {};
+	var ret = proto_tools.read_str_inbuf(cmd_buf, 4);
+	body.uname = ret[0];
+	var offset = ret[1];
+	body.usex = proto_tools.read_int16(cmd_buf, offset);
+	cmd[2] = body;
 
-    buf.writeUInt16LE(offset, 4);
-    buf.write(body["name"], 4 + 2,);
-
-    offset = 6 + offset;
-    buf.writeUInt16LE(body["age"].utf8_byte_len(), offset);
-    buf.fill(body["age"], offset + 2);
-
-    return buf;
-}
-function decode_cmd_1_1(buf) {
-    let cmd = {};
-    let stype = buf.readUInt16LE(0);
-    let ctype = buf.readUInt16LE(2);
-
-    let len = buf.readUInt16LE(4)
-    if ((len + 2 + 2 + 2) > buf.length) {
-        return null;
-    }
-    let name = buf.toString("utf8", 6, 6 + len);
-    if (!name) {
-        return null;
-    }
-
-    let offset = 6 + len;
-    let ageLen = buf.readUInt16LE(offset);
-    if ((ageLen + offset + 2) > buf.len) {
-        return null;
-    }
-    let age = buf.toString("utf8", offset + 2, offset + 2 + ageLen);
-    if (!age) {
-        return null;
-    }
-    cmd[0] = stype;
-    cmd[1] = ctype;
-    cmd[2] = {
-        name: name,
-        age: age,
-    }
-    return cmd;
+	return cmd;
 }
 
-proto_mgr.reg_buf_encoder(1, 1, encode_cmd_1_1);
-proto_mgr.reg_buf_decoder(1, 1, decode_cmd_1_1);
+function decode_exit_talkroom(cmd_buf) {
+	var cmd = {};
+	cmd[0] = proto_tools.read_int16(cmd_buf, 0);
+	cmd[1] = proto_tools.read_int16(cmd_buf, 2);
+	cmd[2] = null;
+	return cmd;
+}
+
+function encode_send_msg_return_talkroom(stype, ctype, body) {
+	if (body[0] != 1) {
+		return proto_tools.encode_status_cmd(stype, ctype, body[0]);
+	}
+
+	var uname_len = body[1].utf8_byte_len();
+	var msg_len = body[3].utf8_byte_len();
+	var total_len = 2 + 2 + 2 + 2 + uname_len + 2 + msg_len + 2;
+	var cmd_buf = proto_tools.alloc_buffer(total_len);
+
+	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, 1, 5);
+	proto_tools.write_int16(cmd_buf, offset, body[0]);
+	offset += 2;
+
+	offset = proto_tools.write_str_inbuf(cmd_buf, offset, body[1], uname_len);
+	proto_tools.write_int16(cmd_buf, offset, body[2]);
+	offset += 2;
+	offset = proto_tools.write_str_inbuf(cmd_buf, offset, body[3], msg_len);
+
+	log.info(cmd_buf);
+	return cmd_buf;
+}
+
+function encode_user_enter(stype, ctype, body) {
+	var uname_len = body.uname.utf8_byte_len();
+	var total_len = 2 + 2 + 2 + uname_len + 2;
+
+	var cmd_buf = proto_tools.alloc_buffer(total_len);
+	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, stype, ctype);
+	offset = proto_tools.write_str_inbuf(cmd_buf, offset, body.uname, uname_len);
+	proto_tools.write_int16(cmd_buf, offset,  body.usex);
+
+	return cmd_buf;
+}
+
+function encode_user_exit(stype, ctype, body) {
+	var uname_len = body.uname.utf8_byte_len();
+	var total_len = 2 + 2 + 2 + uname_len + 2;
+
+	var cmd_buf = proto_tools.alloc_buffer(total_len);
+	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, stype, ctype);
+	offset = proto_tools.write_str_inbuf(cmd_buf, offset, body.uname, uname_len);
+	proto_tools.write_int16(cmd_buf, offset,  body.usex);
+
+	return cmd_buf;
+}
+
+function encode_use_msg(stype, ctype, body) {
+	var uname_len = body[0].utf8_byte_len();
+	var msg_len = body[2].utf8_byte_len();
+	var total_len = 2 + 2 + 2 + uname_len + 2 + msg_len + 2;
+
+	var cmd_buf = proto_tools.alloc_buffer(total_len);
+
+	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, stype, ctype);
+
+	offset = proto_tools.write_str_inbuf(cmd_buf, offset, body[0], uname_len);
+	proto_tools.write_int16(cmd_buf, offset, body[1]);
+	offset += 2;
+	offset = proto_tools.write_str_inbuf(cmd_buf, offset, body[2], msg_len);
+	log.info(cmd_buf);
+	
+	return cmd_buf;
+}
+
+proto_mgr.reg_encoder(1, 1, proto_tools.encode_status_cmd);
+proto_mgr.reg_encoder(1, 2, proto_tools.encode_status_cmd);
+proto_mgr.reg_encoder(1, 5, encode_send_msg_return_talkroom);
+
+proto_mgr.reg_encoder(1, 3, encode_user_enter);
+proto_mgr.reg_encoder(1, 4, encode_user_exit);
+proto_mgr.reg_encoder(1, 6, encode_use_msg);
+
+proto_mgr.reg_decoder(1, 1, decode_enter_talkroom);
+proto_mgr.reg_decoder(1, 2, decode_exit_talkroom);
+proto_mgr.reg_decoder(1, 5, proto_tools.decode_str_cmd);
