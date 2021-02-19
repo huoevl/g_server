@@ -71,7 +71,7 @@ function add_client_session_event(session, proto_type, is_encrypt) {
             return;
         }
         while (offset + pkg_len <= last_pkg.length) {
-            if (session.proto_type == proto_mgr.PROTO_JSON) {
+            /*if (session.proto_type == proto_mgr.PROTO_JSON) {
                 //json协议
                 let json_str = last_pkg.toString("utf-8", offset + 2, offset + pkg_len);
                 if (!json_str) {
@@ -79,7 +79,7 @@ function add_client_session_event(session, proto_type, is_encrypt) {
                     return;
                 }
                 on_session_recv_cmd(session, json_str);//数据解析完成
-            } else {
+            } else */{
                 let cmd_buf = Buffer.allocUnsafe(pkg_len - 2);
                 last_pkg.copy(cmd_buf, 0, offset + 2, offset + pkg_len);
                 on_session_recv_cmd(session, cmd_buf);//数据解析完成
@@ -221,12 +221,12 @@ function ws_add_session_event(session, proto_type, is_encrypt) {
         log.error("ws client listen error");
     })
     session.on("message", (data) => {
-        if (session.proto_type == proto_mgr.PROTO_JSON) {
+        /* if (session.proto_type == proto_mgr.PROTO_JSON) {
             if (!isString(data)) {
                 session_close(session);
                 return;
             }
-        } else {
+        } else */{
             if (!Buffer.isBuffer(data)) {
                 session_close(session);
                 return;

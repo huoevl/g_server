@@ -52,21 +52,24 @@ function decrypt_cmd(str_or_buf) {
  */
 function _json_encode(stype, ctype, body) {
     let cmd = {};
-    cmd[0] = stype;
-    cmd[1] = ctype;
-    cmd[2] = body;
-    return JSON.stringify(cmd);
+    cmd[0] = body;
+    let str = JSON.stringify(cmd);
+    let cmd_buf = proto_tools.encode_str_cmd(stype, ctype, str);
+    return cmd_buf;
 }
 /**
  * json解码 
- * @param {*} cmd_json 数据
+ * @param {*} cmd_buf 数据
  */
-function _json_decode(cmd_json) {
-    let cmd = null;
+function _json_decode(cmd_buf) {
+    let cmd = proto_tools.decode_str_cmd(cmd_buf);
+    let cmd_json = cmd[2];
     try {
-        cmd = JSON.parse(cmd_json);
+        let body_set = JSON.parse(cmd_json);
+        cmd[2] = body_set[0];
     } catch (e) {
         log.error(e);
+        return null;
     }
     if (!cmd || !cmd[0] || !cmd[1]) {
         return null;
@@ -102,17 +105,9 @@ function encode_cmd(proto_type, stype, ctype, body) {
 /** 解码出头 */
 function decode_cmd_header(proto_type, str_or_buf) {
     let cmd = {};
-    if (proto_type == proto_mgr.PROTO_JSON) {
-        let json_cmd = _json_decode(str_or_buf);//这里还要改  半成品
-        cmd[0] = json_cmd[0];
-        cmd[1] = json_cmd[1];
-        return cmd;
-    }
     if (str_or_buf.length < 4) {
         return null;
     }
-    //buf协议
-
     cmd[0] = proto_tools.read_int16(str_or_buf, 0);
     cmd[1] = proto_tools.read_int16(str_or_buf, 2);
     return cmd;
@@ -123,18 +118,18 @@ function decode_cmd_header(proto_type, str_or_buf) {
  * @param {*} str_or_buf 接收到的数据命令
  */
 function decode_cmd(proto_type, str_or_buf) {
+    if (str_or_buf.length <= 4) {
+        return null;
+    }
     //解密
     // str_or_buf = decrypt_cmd(str_or_buf);
     //json协议
     if (proto_type == proto_mgr.PROTO_JSON) {
         return _json_decode(str_or_buf);
     }
-    if (str_or_buf.length < 4) {
-        return null;
-    }
     //buf协议
-    let stype = str_or_buf.readUInt16LE(0);
-    let ctype = str_or_buf.readUInt16LE(2);
+    let stype = proto_tools.read_int16(str_or_buf, 0);
+    let ctype = proto_tools.read_int16(str_or_buf, 2);
     let key = get_key(stype, ctype);
     if (!decoders[key]) {
         return null;

@@ -1,38 +1,38 @@
 // require("../3rd/extends");
 let proto_tools = {
-	// 原操作
-	read_int8: read_int8,
-	write_int8: write_int8,
+    // 原操作
+    read_int8: read_int8,
+    write_int8: write_int8,
 
-	read_int16: read_int16,
-	write_int16, write_int16,
+    read_int16: read_int16,
+    write_int16, write_int16,
 
-	read_int32: read_int32,
+    read_int32: read_int32,
     write_int32, write_int32,
-    
+
     read_uint32: read_uint32,
-	write_uint32, write_uint32,
+    write_uint32, write_uint32,
 
-	read_float: read_float,
-	write_float: write_float,
+    read_float: read_float,
+    write_float: write_float,
 
-	alloc_buffer: alloc_buffer,
+    alloc_buffer: alloc_buffer,
 
-	// 通用操作
-	write_cmd_header_inbuf: write_cmd_header_inbuf,
-	write_str_inbuf: write_str_inbuf,
-	read_str_inbuf: read_str_inbuf,
-	// end
+    // 通用操作
+    write_cmd_header_inbuf: write_cmd_header_inbuf,
+    write_str_inbuf: write_str_inbuf,
+    read_str_inbuf: read_str_inbuf,
+    // end
 
-	// 模板编码解码器
-	encode_str_cmd: encode_str_cmd,
-	encode_status_cmd: encode_status_cmd,
-	encode_empty_cmd: encode_empty_cmd,
+    // 模板编码解码器
+    encode_str_cmd: encode_str_cmd,
+    encode_status_cmd: encode_status_cmd,
+    encode_empty_cmd: encode_empty_cmd,
 
-	decode_str_cmd: decode_str_cmd,
-	decode_status_cmd: decode_status_cmd,
-	decode_empty_cmd: decode_empty_cmd,
-	// 
+    decode_str_cmd: decode_str_cmd,
+    decode_status_cmd: decode_status_cmd,
+    decode_empty_cmd: decode_empty_cmd,
+    // 
 };
 
 
@@ -166,7 +166,7 @@ function encode_str_cmd(stype, ctype, str) {
     let cmd_buf = alloc_buffer(total_len);
 
     let offset = write_cmd_header_inbuf(cmd_buf, stype, ctype, byte_len);
-    offset = write_str_inbuf(cmd_buf, offset, str);
+    offset = write_str_inbuf(cmd_buf, offset, str, byte_len);
     return cmd_buf;
 }
 /** 解码字符串 */
