@@ -105,7 +105,7 @@ function encode_cmd(proto_type, stype, ctype, body) {
 /** 解码出头 */
 function decode_cmd_header(proto_type, str_or_buf) {
     let cmd = {};
-    if (str_or_buf.length < 4) {
+    if (str_or_buf.length < proto_tools.header_size) {
         return null;
     }
     cmd[0] = proto_tools.read_int16(str_or_buf, 0);
@@ -118,7 +118,7 @@ function decode_cmd_header(proto_type, str_or_buf) {
  * @param {*} str_or_buf 接收到的数据命令
  */
 function decode_cmd(proto_type, str_or_buf) {
-    if (str_or_buf.length <= 4) {
+    if (str_or_buf.length < proto_tools.header_size) {
         return null;
     }
     //解密

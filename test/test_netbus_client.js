@@ -54,7 +54,7 @@ function testTimout(data1, data2) {
 
 /** 测试 一个包带两个数据 模拟粘包*/
 function testTwo(data1, data2) {
-    let buf = Buffer.allocUnsafe(4 + data1.length + data2.length);
+    let buf = Buffer.allocUnsafe(proto_tools.header_size + data1.length + data2.length);
     buf.writeInt16LE(2 + data1.length, 0);
     buf.fill(data1, 2);
     let offset = 2 + data1.length;

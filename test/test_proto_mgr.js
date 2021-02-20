@@ -25,15 +25,15 @@ log.info("buff decode_cmd buf: ", str);
 //二进制 编码解码
 function encode_cmd_1_1(body) {
     let offset = body["name"].utf8_byte_len();
-    let len = 2 + 2 + 2 + offset + 2 + body["age"].utf8_byte_len();
+    let len = proto_tools.header_size + 2 + offset + 2 + body["age"].utf8_byte_len();
     let buf = Buffer.allocUnsafe(len);
     buf.writeUInt16LE(1, 0);
     buf.writeUInt16LE(1, 2);
 
-    buf.writeUInt16LE(offset, 4);
-    buf.write(body["name"], 4 + 2,);
+    buf.writeUInt16LE(offset, proto_tools.header_size);
+    buf.write(body["name"], proto_tools.header_size + 2,);
 
-    offset = 6 + offset;
+    offset = proto_tools.header_size + 2 + offset;
     buf.writeUInt16LE(body["age"].utf8_byte_len(), offset);
     buf.fill(body["age"], offset + 2);
 
@@ -44,16 +44,16 @@ function decode_cmd_1_1(buf) {
     let stype = buf.readUInt16LE(0);
     let ctype = buf.readUInt16LE(2);
 
-    let len = buf.readUInt16LE(4)
-    if ((len + 2 + 2 + 2) > buf.length) {
+    let len = buf.readUInt16LE(proto_tools.header_size)
+    if ((len + proto_tools.header_size + 2) > buf.length) {
         return null;
     }
-    let name = buf.toString("utf8", 6, 6 + len);
+    let name = buf.toString("utf8", proto_tools.header_size + 2, proto_tools.header_size + 2 + len);
     if (!name) {
         return null;
     }
 
-    let offset = 6 + len;
+    let offset = proto_tools.header_size + 2 + len;
     let ageLen = buf.readUInt16LE(offset);
     if ((ageLen + offset + 2) > buf.len) {
         return null;

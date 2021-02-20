@@ -54,7 +54,7 @@ function decode_enter_talkroom(cmd_buf) {
 	cmd[0] = proto_tools.read_int16(cmd_buf, 0);
 	cmd[1] = proto_tools.read_int16(cmd_buf, 2);
 	var body = {};
-	var ret = proto_tools.read_str_inbuf(cmd_buf, 4);
+	var ret = proto_tools.read_str_inbuf(cmd_buf, proto_tools.header_size);
 	body.uname = ret[0];
 	var offset = ret[1];
 	body.usex = proto_tools.read_int16(cmd_buf, offset);
@@ -78,7 +78,7 @@ function encode_send_msg_return_talkroom(stype, ctype, body) {
 
 	var uname_len = body[1].utf8_byte_len();
 	var msg_len = body[3].utf8_byte_len();
-	var total_len = 2 + 2 + 2 + 2 + uname_len + 2 + msg_len + 2;
+	var total_len = proto_tools.header_size + 2 + 2 + uname_len + 2 + msg_len + 2;
 	var cmd_buf = proto_tools.alloc_buffer(total_len);
 
 	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, 1, 5);
@@ -96,7 +96,7 @@ function encode_send_msg_return_talkroom(stype, ctype, body) {
 
 function encode_user_enter(stype, ctype, body) {
 	var uname_len = body.uname.utf8_byte_len();
-	var total_len = 2 + 2 + 2 + uname_len + 2;
+	var total_len = proto_tools.header_size + 2 + uname_len + 2;
 
 	var cmd_buf = proto_tools.alloc_buffer(total_len);
 	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, stype, ctype);
@@ -108,7 +108,7 @@ function encode_user_enter(stype, ctype, body) {
 
 function encode_user_exit(stype, ctype, body) {
 	var uname_len = body.uname.utf8_byte_len();
-	var total_len = 2 + 2 + 2 + uname_len + 2;
+	var total_len =proto_tools.header_size + 2 + uname_len + 2;
 
 	var cmd_buf = proto_tools.alloc_buffer(total_len);
 	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, stype, ctype);
@@ -121,7 +121,7 @@ function encode_user_exit(stype, ctype, body) {
 function encode_use_msg(stype, ctype, body) {
 	var uname_len = body[0].utf8_byte_len();
 	var msg_len = body[2].utf8_byte_len();
-	var total_len = 2 + 2 + 2 + uname_len + 2 + msg_len + 2;
+	var total_len = proto_tools.header_size + 2 + uname_len + 2 + msg_len + 2;
 
 	var cmd_buf = proto_tools.alloc_buffer(total_len);
 
