@@ -98,18 +98,21 @@ function encode_cmd(proto_type, stype, ctype, body) {
         // buf = encoders[key](body);//为了通用
         buf = encoders[key](stype, ctype, body);
     }
+    proto_tools.write_prorotype_inbuf(buf, proto_type);
     //加密
     // buf = encrypt_cmd(buf);
     return buf;
 }
 /** 解码出头 */
-function decode_cmd_header(proto_type, str_or_buf) {
+function decode_cmd_header( str_or_buf) {
     let cmd = {};
     if (str_or_buf.length < proto_tools.header_size) {
         return null;
     }
     cmd[0] = proto_tools.read_int16(str_or_buf, 0);
     cmd[1] = proto_tools.read_int16(str_or_buf, 2);
+    cmd[2] = proto_tools.read_int16(str_or_buf, 4);
+    cmd[3] = proto_tools.read_int16(str_or_buf, 8);
     return cmd;
 }
 /**

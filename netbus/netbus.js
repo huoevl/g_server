@@ -15,12 +15,19 @@ let netbus = {
     /** 开启ws服务器 */
     start_ws_server: start_ws_server,
 
-    /**  */
+    /** 连接网关服务器 */
     connect_tcp_server: connect_tcp_server,
+
+    get_client_session: get_client_session,
+    get_server_session: get_server_session,
 };
 
 let global_session_map = {};
 let global_session_key = 0;
+
+function get_client_session(session_key) {
+    return global_session_map[session_key];
+}
 
 /**
  * 启动tcp服务
@@ -335,6 +342,11 @@ function connect_tcp_server(stype, host, port, proto_type, is_encrypt) {
 }
 
 let server_session_list = {};
+
+
+function get_server_session(stype) {
+    return server_session_list[stype];
+}
 /** session成功接入服务器 */
 function on_session_connected(stype, session, proto_type, is_ws, is_encrypt) {
     if (is_ws) {

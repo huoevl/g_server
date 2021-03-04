@@ -1,6 +1,6 @@
 // require("../3rd/extends");
 let proto_tools = {
-    header_size: 8,//2+2+4;
+    header_size: 10,//2+2+4+2;stype,ctype,userUId,proto_type
     // 原操作
     read_int8: read_int8,
     write_int8: write_int8,
@@ -34,6 +34,7 @@ let proto_tools = {
     decode_status_cmd: decode_status_cmd,
     decode_empty_cmd: decode_empty_cmd,
     // 
+    write_prorotype_inbuf: write_prorotype_inbuf,
 };
 
 
@@ -57,11 +58,11 @@ function write_int32(cmd_buf, offset, value) {
 }
 
 function read_uint32(cmd_buf, offset) {
-	return cmd_buf.readUInt32LE(offset);
+    return cmd_buf.readUInt32LE(offset);
 }
 
 function write_uint32(cmd_buf, offset, value) {
-	cmd_buf.writeUInt32LE(value, offset);
+    cmd_buf.writeUInt32LE(value, offset);
 }
 
 function read_float(cmd_buf, offset) {
@@ -130,6 +131,10 @@ function write_cmd_header_inbuf(cmd_buf, stype, ctype, utag) {
     write_int16(cmd_buf, 2, ctype);
     write_uint32(cmd_buf, 4, 0);
     return proto_tools.header_size;
+}
+
+function write_prorotype_inbuf(cmd_buf, proto_type) {
+    write_int16(cmd_buf, 8, proto_type);
 }
 
 /** 解码空字符 */

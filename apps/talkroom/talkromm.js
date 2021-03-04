@@ -38,7 +38,7 @@ let service = {
 
 
     /** 每个服务受到数据调用 */
-    on_recv_player_cmd: function (session, stype, ctype, body, raw_cmd) {
+    on_recv_player_cmd: function (session, stype, ctype, body, utag, proto_type, raw_cmd) {
         let self = this;
         log.info(self.name + " on_recv_player_cmd: ", ctype, body);
         switch (ctype) {

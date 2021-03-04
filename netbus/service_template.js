@@ -4,7 +4,7 @@ let service = {
     /** 是否为转发模块 */
     is_transfer: false,
     /** 收到客户端发来的数据 */
-    on_recv_player_cmd: function (session, stype, ctype, body, raw_cmd) {
+    on_recv_player_cmd: function (session, stype, ctype, body, utag, proto_type, raw_cmd) {
 
     },
     /** 每个服务连接丢失调用  被动离开*/
@@ -13,7 +13,7 @@ let service = {
     },
 
     /** 收到连接的服务发过来数据 */
-    on_recv_server_returen: function (session, stype, ctype, body, raw_cmd) {
+    on_recv_server_returen: function (session, stype, ctype, body, utag, proto_type, raw_cmd) {
 
     },
 }
