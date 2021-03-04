@@ -1,6 +1,6 @@
-const proto_mgr = require("../netbus/proto_mgr");
-const log = require("../utils/log");
-require("./talk_room_proto");
+const proto_mgr = require("../../netbus/proto_mgr");
+const log = require("../../utils/log");
+require("./talkroom_proto");
 /** 聊天室协议 */
 let TalkCmd = {
     /** 用户进来 */

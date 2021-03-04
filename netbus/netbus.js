@@ -14,6 +14,9 @@ let netbus = {
     session_close: session_close,
     /** 开启ws服务器 */
     start_ws_server: start_ws_server,
+
+    /**  */
+    connect_tcp_server: connect_tcp_server,
 };
 
 let global_session_map = {};
@@ -117,6 +120,7 @@ function on_session_exit(session) {
     if (global_session_map[global_session_key]) {
         global_session_map[global_session_key] = null;
         delete global_session_map[global_session_key];
+        session.session_key = null;
     }
 }
 /** 客户端进来 */
@@ -238,6 +242,131 @@ function ws_add_session_event(session, proto_type, is_encrypt) {
 /** 是否字符串 */
 function isString(obj) {
     return Object.prototype.toString.call(obj) === "[object String]";
+}
+
+
+
+/** 数据 */
+function on_recv_cmd_server_return(session, str_or_buf) {
+    // log.info(str_or_buf);
+    // log.info(str_or_buf.toString());
+    let flag = service_mgr.on_recv_client_cmd(session, str_or_buf);
+    if (!flag) {
+        session_close(session);
+    }
+}
+
+function connect_tcp_server(stype, host, port, proto_type, is_encrypt) {
+    let session = net.connect({
+        port: port,
+        host: host,
+    });
+    session.is_connected = false;
+    session.on("connect", () => {
+        on_session_connected(stype, session, proto_type, false, is_encrypt);
+
+    });
+    session.on("close", () => {
+        if (session.is_connected) {
+            on_session_disconnected(session);
+        }
+        //重新连接到服务器
+        setTimeout(() => {
+            log.warn("reconnect:", stype, host, port, proto_type, is_encrypt);
+            connect_tcp_server(stype, host, port, proto_type, is_encrypt);
+        }, 3000);
+
+    });
+    session.on("data", (data) => {
+        if (!Buffer.isBuffer(data)) {//tcp传输必须用buffer 我们定义的拆封包
+            session_close(session);
+            return;
+        }
+
+        let last_pkg = session.last_pkg;
+        if (last_pkg != null) {
+            let buf = Buffer.concat([last_pkg, data], last_pkg.length + data.length);
+            last_pkg = buf;
+        } else {
+            last_pkg = data;
+        }
+        let offset = 0;
+        let pkg_len = tcppkg.red_pkg_size(last_pkg, offset);
+        if (pkg_len < 0) {
+            return;
+        }
+        while (offset + pkg_len <= last_pkg.length) {
+            /*if (session.proto_type == proto_mgr.PROTO_JSON) {
+                //json协议
+                let json_str = last_pkg.toString("utf-8", offset + 2, offset + pkg_len);
+                if (!json_str) {
+                    session_close(session);
+                    return;
+                }
+                on_session_recv_cmd(session, json_str);//数据解析完成
+            } else */{
+                let cmd_buf = Buffer.allocUnsafe(pkg_len - 2);
+                last_pkg.copy(cmd_buf, 0, offset + 2, offset + pkg_len);
+                on_recv_cmd_server_return(session, cmd_buf);//数据解析完成
+            }
+
+            offset += pkg_len;
+            if (offset >= last_pkg.length) {
+                break;
+            }
+            pkg_len = tcppkg.red_pkg_size(last_pkg, offset);
+            if (pkg_len < 0) {
+                break;
+            }
+        }
+        if (offset >= last_pkg.length) {
+            last_pkg = null;
+        } else {
+            let buf = Buffer.allocUnsafe(last_pkg.length - offset);
+            last_pkg.copy(buf, 0, offset, last_pkg.length);
+            last_pkg = buf;
+        }
+        session.last_pkg = last_pkg;
+    });
+
+    session.on("error", (err) => {
+        // log.error(" cconnect_tcp_server error");
+    });
+}
+
+let server_session_list = {};
+/** session成功接入服务器 */
+function on_session_connected(stype, session, proto_type, is_ws, is_encrypt) {
+    if (is_ws) {
+        log.info("ws session comming", session._socket.remoteAddress, session._socket.remotePort);
+    } else {
+        log.info("tcp session comming ", session.remoteAddress, session.remotePort);
+    }
+    session.last_pkg = null;
+    session.is_ws = is_ws;
+    session.proto_type = proto_type;
+    session.is_connected = true;
+    session.is_encrypt = is_encrypt;
+
+    //扩展session的方法
+    session.send_encoded_cmd = session_send_encoded_cmd;
+    session.send_cmd = session_send_cmd;
+
+    server_session_list[stype] = session;
+    session.session_key = stype;
+}
+
+/** session退出服务器 */
+function on_session_disconnected(session) {
+    log.info("on_session_disconnected exit !!!");
+    session.last_pkg = null;
+    session.is_connected = false;
+    let stype = session.session_key;
+    session.session_key = null;
+    if (server_session_list[stype]) {
+        server_session_list[stype] = null;
+        delete server_session_list[stype];
+    }
 }
 
 
