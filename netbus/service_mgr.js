@@ -27,7 +27,7 @@ function register_service(stype, service) {
 function on_client_lost_connect(session) {
     log.info("session lost", session.session_key);
     for (let key in service_modules) {
-        service_modules[key].on_player_disconnect(session);
+        service_modules[key].on_player_disconnect(key, session);
     }
 }
 /**
@@ -37,7 +37,7 @@ function on_client_lost_connect(session) {
  */
 function on_recv_client_cmd(session, str_or_buf) {
     //解码命令
-    console.log("加密解密：", session.is_encrypt);
+    console.log("加密解密 on_recv_client_cmd：", session.is_encrypt);
     if (session.is_encrypt) {
         str_or_buf = proto_mgr.decrypt_cmd(str_or_buf);
     }
@@ -56,7 +56,7 @@ function on_recv_client_cmd(session, str_or_buf) {
         service_modules[stype].on_recv_player_cmd(session, stype, ctype, null, utag, proto_type, str_or_buf);
         return true;
     }
-    cmd = proto_mgr.decode_cmd(proto_type, str_or_buf);
+    cmd = proto_mgr.decode_cmd(proto_type, stype, ctype, str_or_buf);
     if (!cmd) {
         return false;
     }
@@ -75,7 +75,7 @@ function on_recv_client_cmd(session, str_or_buf) {
  */
 function on_recv_server_return(session, str_or_buf) {
     //解码命令
-    console.log("加密解密：", session.is_encrypt);
+    console.log("加密解密 server_Return：", session.is_encrypt);
     if (session.is_encrypt) {
         str_or_buf = proto_mgr.decrypt_cmd(str_or_buf);
     }
@@ -92,7 +92,7 @@ function on_recv_server_return(session, str_or_buf) {
         service_modules[stype].on_recv_server_returen(session, ctype, null, utag, proto_type, str_or_buf);
         return true;
     }
-    cmd = proto_mgr.decode_cmd(proto_type, str_or_buf);
+    cmd = proto_mgr.decode_cmd(proto_type, stype, ctype, str_or_buf);
     if (!cmd) {
         return false;
     }

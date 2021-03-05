@@ -35,6 +35,8 @@ let proto_tools = {
     decode_empty_cmd: decode_empty_cmd,
     // 
     write_prorotype_inbuf: write_prorotype_inbuf,
+    write_utag_inbuf: write_utag_inbuf,
+    clear_utag_inbuf: clear_utag_inbuf,
 };
 
 
@@ -136,7 +138,13 @@ function write_cmd_header_inbuf(cmd_buf, stype, ctype, utag) {
 function write_prorotype_inbuf(cmd_buf, proto_type) {
     write_int16(cmd_buf, 8, proto_type);
 }
+function write_utag_inbuf(cmd_buf, utag) {
+    write_uint32(cmd_buf, 4, utag);
+}
 
+function clear_utag_inbuf(cmd_buf,) {
+    write_uint32(cmd_buf, 4, 0);
+}
 /** 解码空字符 */
 function decode_empty_cmd(cmd_buf) {
     let cmd = {};

@@ -61,6 +61,7 @@ function add_client_session_event(session, proto_type, is_encrypt) {
 
     session.on("close", () => {
         on_session_exit(session);
+        session.end();
     });
     session.on("data", (data) => {
         if (!Buffer.isBuffer(data)) {//tcp传输必须用buffer 我们定义的拆封包
@@ -81,15 +82,7 @@ function add_client_session_event(session, proto_type, is_encrypt) {
             return;
         }
         while (offset + pkg_len <= last_pkg.length) {
-            /*if (session.proto_type == proto_mgr.PROTO_JSON) {
-                //json协议
-                let json_str = last_pkg.toString("utf-8", offset + 2, offset + pkg_len);
-                if (!json_str) {
-                    session_close(session);
-                    return;
-                }
-                on_session_recv_cmd(session, json_str);//数据解析完成
-            } else */{
+            {
                 let cmd_buf = Buffer.allocUnsafe(pkg_len - 2);
                 last_pkg.copy(cmd_buf, 0, offset + 2, offset + pkg_len);
                 on_session_recv_cmd(session, cmd_buf);//数据解析完成
@@ -133,9 +126,9 @@ function on_session_exit(session) {
 /** 客户端进来 */
 function on_session_enter(session, proto_type, is_ws, is_encrypt) {
     if (is_ws) {
-        log.info("ws client comming", session._socket.remoteAddress, session._socket.remotePort);
+        log.info("ws client comming", is_ws, session._socket.remoteAddress, session._socket.remotePort);
     } else {
-        log.info("tcp client comming ", session.remoteAddress, session.remotePort);
+        log.info("tcp client comming ", is_ws, session.remoteAddress, session.remotePort);
     }
     session.last_pkg = null;
     session.is_ws = is_ws;
@@ -161,12 +154,12 @@ function on_session_recv_cmd(session, str_or_buf) {
     }
 }
 /** 发送未编码的数据包 */
-function session_send_cmd(stype, ctype, body) {
+function session_send_cmd(stype, ctype, body, utag, proto_type) {
     let self = this;
     if (!self.is_connected) {
         return;
     }
-    let cmd = proto_mgr.encode_cmd(self.proto_type, stype, ctype, body);
+    let cmd = proto_mgr.encode_cmd(utag, proto_type, stype, ctype, body);
     if (cmd) {
         self.send_encoded_cmd(cmd);
     }
@@ -232,12 +225,7 @@ function ws_add_session_event(session, proto_type, is_encrypt) {
         log.error("ws client listen error");
     })
     session.on("message", (data) => {
-        /* if (session.proto_type == proto_mgr.PROTO_JSON) {
-            if (!isString(data)) {
-                session_close(session);
-                return;
-            }
-        } else */{
+        {
             if (!Buffer.isBuffer(data)) {
                 session_close(session);
                 return;
@@ -257,7 +245,7 @@ function isString(obj) {
 function on_recv_cmd_server_return(session, str_or_buf) {
     // log.info(str_or_buf);
     // log.info(str_or_buf.toString());
-    let flag = service_mgr.on_recv_client_cmd(session, str_or_buf);
+    let flag = service_mgr.on_recv_server_return(session, str_or_buf);
     if (!flag) {
         session_close(session);
     }
@@ -310,7 +298,6 @@ function connect_tcp_server(stype, host, port, proto_type, is_encrypt) {
                     session_close(session);
                     return;
                 }
-                on_session_recv_cmd(session, json_str);//数据解析完成
             } else */{
                 let cmd_buf = Buffer.allocUnsafe(pkg_len - 2);
                 last_pkg.copy(cmd_buf, 0, offset + 2, offset + pkg_len);
@@ -350,9 +337,9 @@ function get_server_session(stype) {
 /** session成功接入服务器 */
 function on_session_connected(stype, session, proto_type, is_ws, is_encrypt) {
     if (is_ws) {
-        log.info("ws session comming", session._socket.remoteAddress, session._socket.remotePort);
+        log.info("ws session comming", is_ws, session._socket.remoteAddress, session._socket.remotePort);
     } else {
-        log.info("tcp session comming ", session.remoteAddress, session.remotePort);
+        log.info("tcp session comming ", is_ws, session.remoteAddress, session.remotePort);
     }
     session.last_pkg = null;
     session.is_ws = is_ws;

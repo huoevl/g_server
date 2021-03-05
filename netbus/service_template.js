@@ -8,7 +8,7 @@ let service = {
 
     },
     /** 每个服务连接丢失调用  被动离开*/
-    on_player_disconnect: function (session) {
+    on_player_disconnect: function (stype, session) {
 
     },
 

@@ -15,6 +15,9 @@ let TalkCmd = {
     SendMsg: 5,
     /** 收到别人的消息 */
     UserMsg: 6,
+
+    /** 用户掉线 */
+    GW_DisConnect: 10000,
 }
 let STYPE_TALKROOM = 1;
 
@@ -43,112 +46,126 @@ let service = {
         log.info(self.name + " on_recv_player_cmd: ", ctype, body);
         switch (ctype) {
             case TalkCmd.Enter: {
-                on_user_enter_talkRoom(session, body);
+                on_user_enter_talkRoom(session, body, utag, proto_type);
             } break;
             case TalkCmd.Exit: {//主动离开
-                on_user_exit_talkroom(session, false);
+                on_user_exit_talkroom(session, false, utag, proto_type,);
             } break;
             case TalkCmd.SendMsg: {
-                on_user_send_msg(session, body);
+                on_user_send_msg(session, body, utag, proto_type,);
+            } break;
+            case TalkCmd.GW_DisConnect: {//网关转发过来 用户被迫掉线
+                on_user_exit_talkroom(session, true, utag, proto_type,);
             } break;
         }
     },
     /** 每个服务连接丢失调用  被动离开*/
-    on_player_disconnect: function (session) {
+    on_player_disconnect: function (stype, session) {
         let self = this;
-        log.info(self.name + " on_player_disconnect：", session.session_key);
-        on_user_exit_talkroom(session, true);
+        // log.info(self.name + " on_player_disconnect：", session.session_key);
+        // on_user_exit_talkroom(session, true);
+        log.info("lost connect with gateway!!!", stype);
+
+
     },
 }
-/** 用户进来 */
-function on_user_enter_talkRoom(session, body) {
+/**
+ * 用户进来
+ * @param {*} session 这里是网关
+ * @param {*} body 
+ * @param {*} utag 
+ * @param {*} proto_type 
+ */
+function on_user_enter_talkRoom(session, body, utag, proto_type) {
     if (body.uname == void (0) || body.usex == void (0)) {
-        session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.INVALD_PARMAS);
+        session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.INVALD_PARMAS, utag, proto_type);
         return;
     }
-    if (room[session.session_key]) {
-        session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.IS_IN_TALKROOM);
+    if (room[utag]) {
+        session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.IS_IN_TALKROOM, utag, proto_type);
         return;
     }
     //告诉客户端进来成功
-    session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.OK);
+    session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.OK, utag, proto_type);
     //进来的消息广播给其他人
-    broadcast_cmd(TalkCmd.UserArrrived, body, session)
+    broadcast_cmd(TalkCmd.UserArrrived, body, utag)
     //广播聊天室的人给客户端
     for (let key in room) {
-        session.send_cmd(STYPE_TALKROOM, TalkCmd.UserArrrived, room[key].uinfo);
+        session.send_cmd(STYPE_TALKROOM, TalkCmd.UserArrrived, room[key].uinfo, utag, proto_type);
     }
     //保存自己
-    let talk_man = { session: session, uinfo: body };
-    room[session.session_key] = talk_man;
+    let talk_man = { session: session, utag: utag, proto_type: proto_type, uinfo: body };
+    room[utag] = talk_man;
 }
 /**
  * 广播
  * @param {*} ctype 
  * @param {*} body 
- * @param {*} not_user 不给广播的session
+ * @param {*} notUser 不给广播的session
  */
-function broadcast_cmd(ctype, body, not_user) {
+function broadcast_cmd(ctype, body, notUser) {
     let json_encoded = null;
     let buf_encoded = null;
     for (let key in room) {
         let session = room[key].session;
-        if (session == not_user) {
+        let utag = room[key].utag;
+        if (notUser == utag) {
             continue;
         }
-        if (session.proto_type == proto_mgr.PROTO_JSON) {
+        let proto_type = room[key].proto_type;
+        if (proto_type == proto_mgr.PROTO_JSON) {
             if (!json_encoded) {
-                json_encoded = proto_mgr.encode_cmd(proto_mgr.PROTO_JSON, STYPE_TALKROOM, ctype, body);
+                json_encoded = proto_mgr.encode_cmd(utag, proto_type, STYPE_TALKROOM, ctype, body);
             }
             session.send_encoded_cmd(json_encoded);
         }
-        if (session.proto_type == proto_mgr.PROTO_BUFF) {
+        if (proto_type == proto_mgr.PROTO_BUFF) {
             if (!buf_encoded) {
-                buf_encoded = proto_mgr.encode_cmd(proto_mgr.PROTO_BUFF, STYPE_TALKROOM, ctype, body);
+                buf_encoded = proto_mgr.encode_cmd(utag, proto_type, STYPE_TALKROOM, ctype, body);
             }
             session.send_encoded_cmd(buf_encoded);
         }
     }
 }
 
-function on_user_exit_talkroom(session, is_lost_connect) {
-    if (!room[session.session_key]) {
+function on_user_exit_talkroom(session, is_lost_connect, utag, proto_type) {
+    if (!room[utag]) {
         if (!is_lost_connect) {
-            session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.NOT_IN_TALKROOM);
+            session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.NOT_IN_TALKROOM, utag, proto_type);
         }
         return;
     }
     //广播给别人
-    broadcast_cmd(TalkCmd.UserExit, room[session.session_key].uinfo, session);
+    broadcast_cmd(TalkCmd.UserExit, room[utag].uinfo, utag);
     //删除
-    room[session.session_key] = null;
-    delete room[session.session_key];
+    room[utag] = null;
+    delete room[sutag];
     //发送成功离开
     if (!is_lost_connect) {
-        session.send_cmd(STYPE_TALKROOM, TalkCmd.Exit, Response.OK);
+        session.send_cmd(STYPE_TALKROOM, TalkCmd.Exit, Response.OK, utag, proto_type);
     }
 }
 
 /** 客户端发送消息 */
-function on_user_send_msg(session, msg) {
-    if (!room[session.session_key]) {
+function on_user_send_msg(session, msg, utag, proto_type) {
+    if (!room[utag]) {
         session.send_cmd(STYPE_TALKROOM, TalkCmd.SendMsg, {
             0: Response.INVALD_OPT,
-        });
+        }, utag, proto_type);
         return;
     }
     //发送成功 发给客户端
     session.send_cmd(STYPE_TALKROOM, TalkCmd.SendMsg, {
         0: Response.OK,
-        1: room[session.session_key].uinfo.uname,
-        2: room[session.session_key].uinfo.usex,
+        1: room[utag].uinfo.uname,
+        2: room[utag].uinfo.usex,
         3: msg
-    })
+    }, utag, proto_type)
     //广播给其他的人
     broadcast_cmd(TalkCmd.UserMsg, {
-        0: room[session.session_key].uinfo.uname,
-        1: room[session.session_key].uinfo.usex,
+        0: room[utag].uinfo.uname,
+        1: room[utag].uinfo.usex,
         2: msg
-    }, session)
+    }, utag)
 }
 module.exports = service;

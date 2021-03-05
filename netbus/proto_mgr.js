@@ -14,6 +14,8 @@ let proto_mgr = {
     PROTO_JSON: 1,
     /** 二进制协议 */
     PROTO_BUFF: 2,
+    /** 用户掉线 */
+    GW_DisConnect: 10000,
     /** 编码 */
     encode_cmd: encode_cmd,
     /** 解码 */
@@ -83,7 +85,7 @@ function _json_decode(cmd_buf) {
  * @param {*} ctype 命令号
  * @param {*} body 数据
  */
-function encode_cmd(proto_type, stype, ctype, body) {
+function encode_cmd(utag, proto_type, stype, ctype, body) {
     let buf = null;
     if (proto_type == proto_mgr.PROTO_JSON) {
         let str = _json_encode(stype, ctype, body);
@@ -98,13 +100,14 @@ function encode_cmd(proto_type, stype, ctype, body) {
         // buf = encoders[key](body);//为了通用
         buf = encoders[key](stype, ctype, body);
     }
+    proto_tools.write_utag_inbuf(buf, utag);
     proto_tools.write_prorotype_inbuf(buf, proto_type);
     //加密
     // buf = encrypt_cmd(buf);
     return buf;
 }
 /** 解码出头 */
-function decode_cmd_header( str_or_buf) {
+function decode_cmd_header(str_or_buf) {
     let cmd = {};
     if (str_or_buf.length < proto_tools.header_size) {
         return null;
@@ -120,7 +123,7 @@ function decode_cmd_header( str_or_buf) {
  * @param {*} proto_type 协议类型
  * @param {*} str_or_buf 接收到的数据命令
  */
-function decode_cmd(proto_type, str_or_buf) {
+function decode_cmd(proto_type, stype, ctype, str_or_buf) {
     if (str_or_buf.length < proto_tools.header_size) {
         return null;
     }
@@ -131,8 +134,8 @@ function decode_cmd(proto_type, str_or_buf) {
         return _json_decode(str_or_buf);
     }
     //buf协议
-    let stype = proto_tools.read_int16(str_or_buf, 0);
-    let ctype = proto_tools.read_int16(str_or_buf, 2);
+    // let stype = proto_tools.read_int16(str_or_buf, 0);
+    // let ctype = proto_tools.read_int16(str_or_buf, 2);
     let key = get_key(stype, ctype);
     if (!decoders[key]) {
         return null;

@@ -5,6 +5,7 @@ const netbus = require("../../netbus/netbus");
 const proto_mgr = require("../../netbus/proto_mgr");
 const service_mgr = require("../../netbus/service_mgr");
 const game_config = require("../game_config");
+const gw_service = require("./gw_service");
 
 let host = game_config.getway_config.host;
 let posts = game_config.getway_config.ports;
@@ -20,4 +21,5 @@ let game_server = game_config.game_server;
 for (let key in game_server) {
     let server = game_server[key];
     netbus.connect_tcp_server(server.stype, server.host, server.port, proto_mgr.PROTO_BUFF, false);
+    service_mgr.register_service(server.stype, gw_service);
 }
