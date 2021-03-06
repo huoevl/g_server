@@ -19,7 +19,7 @@ let service = {
         proto_tools.write_utag_inbuf(raw_cmd, utag);
         //中转到服务
         server_session.send_encoded_cmd(raw_cmd);
-
+        console.log("收到客户端 中转到服务器")
 
     },
     /** 收到客户端断开连接  被动离开*/
@@ -30,8 +30,9 @@ let service = {
         if (!server_session) {
             return;
         }
-        let utag = session.session_key;
         server_session.send_cmd(stype, proto_mgr.GW_DisConnect, null, utag, proto_mgr.PROTO_JSON);
+
+        console.log("收到客户端断开连接")
     },
 
     /** 收到连接的服务发过来数据 转客户端*/
@@ -43,6 +44,7 @@ let service = {
         //擦除utag
         proto_tools.clear_utag_inbuf(raw_cmd);
         client_session.send_encoded_cmd(raw_cmd);
+        console.log("收到服务器 中转到客户端")
     },
 }
 module.exports = service;

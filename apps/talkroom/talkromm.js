@@ -15,9 +15,6 @@ let TalkCmd = {
     SendMsg: 5,
     /** 收到别人的消息 */
     UserMsg: 6,
-
-    /** 用户掉线 */
-    GW_DisConnect: 10000,
 }
 let STYPE_TALKROOM = 1;
 
@@ -54,7 +51,7 @@ let service = {
             case TalkCmd.SendMsg: {
                 on_user_send_msg(session, body, utag, proto_type,);
             } break;
-            case TalkCmd.GW_DisConnect: {//网关转发过来 用户被迫掉线
+            case proto_mgr.GW_DisConnect: {//网关转发过来 用户被迫掉线
                 on_user_exit_talkroom(session, true, utag, proto_type,);
             } break;
         }
@@ -66,6 +63,11 @@ let service = {
         // on_user_exit_talkroom(session, true);
         log.info("lost connect with gateway!!!", stype);
 
+        let utag = session.session_key;
+        room[utag] = null;
+        delete room[utag];
+
+        console.log("强制断线删除utag", utag);
 
     },
 }
@@ -85,6 +87,7 @@ function on_user_enter_talkRoom(session, body, utag, proto_type) {
         session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.IS_IN_TALKROOM, utag, proto_type);
         return;
     }
+    console.log("进入聊天室utag", utag);
     //告诉客户端进来成功
     session.send_cmd(STYPE_TALKROOM, TalkCmd.Enter, Response.OK, utag, proto_type);
     //进来的消息广播给其他人
@@ -106,6 +109,11 @@ function on_user_enter_talkRoom(session, body, utag, proto_type) {
 function broadcast_cmd(ctype, body, notUser) {
     let json_encoded = null;
     let buf_encoded = null;
+
+    console.log("广播 notUser", notUser);
+    for (let key in room) {
+        console.log(room[key].utag);
+    }
     for (let key in room) {
         let session = room[key].session;
         let utag = room[key].utag;
@@ -139,7 +147,9 @@ function on_user_exit_talkroom(session, is_lost_connect, utag, proto_type) {
     broadcast_cmd(TalkCmd.UserExit, room[utag].uinfo, utag);
     //删除
     room[utag] = null;
-    delete room[sutag];
+    delete room[utag];
+
+    console.log("断线删除，utag", utag);
     //发送成功离开
     if (!is_lost_connect) {
         session.send_cmd(STYPE_TALKROOM, TalkCmd.Exit, Response.OK, utag, proto_type);
@@ -148,6 +158,10 @@ function on_user_exit_talkroom(session, is_lost_connect, utag, proto_type) {
 
 /** 客户端发送消息 */
 function on_user_send_msg(session, msg, utag, proto_type) {
+    console.log("客户端发送消息 utag", utag);
+    for (let key in room) {
+        console.log(room[key].utag);
+    }
     if (!room[utag]) {
         session.send_cmd(STYPE_TALKROOM, TalkCmd.SendMsg, {
             0: Response.INVALD_OPT,

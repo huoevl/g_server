@@ -171,13 +171,12 @@ function session_send_encoded_cmd(cmd) {
     if (!self.is_connected) {
         return;
     }
-    console.log("加密解密netbus：", self.is_encrypt);
     if (self.is_encrypt) {
         cmd = proto_mgr.encrypt_cmd(cmd);
     }
     if (!self.is_ws) {
         let data = tcppkg.package_data(cmd);
-        self.wirte(data)
+        self.write(data)
     } else {
         self.send(cmd);
     }
@@ -245,6 +244,7 @@ function isString(obj) {
 function on_recv_cmd_server_return(session, str_or_buf) {
     // log.info(str_or_buf);
     // log.info(str_or_buf.toString());
+    console.log("on_recv_cmd_server_return");
     let flag = service_mgr.on_recv_server_return(session, str_or_buf);
     if (!flag) {
         session_close(session);
@@ -291,14 +291,7 @@ function connect_tcp_server(stype, host, port, proto_type, is_encrypt) {
             return;
         }
         while (offset + pkg_len <= last_pkg.length) {
-            /*if (session.proto_type == proto_mgr.PROTO_JSON) {
-                //json协议
-                let json_str = last_pkg.toString("utf-8", offset + 2, offset + pkg_len);
-                if (!json_str) {
-                    session_close(session);
-                    return;
-                }
-            } else */{
+            {
                 let cmd_buf = Buffer.allocUnsafe(pkg_len - 2);
                 last_pkg.copy(cmd_buf, 0, offset + 2, offset + pkg_len);
                 on_recv_cmd_server_return(session, cmd_buf);//数据解析完成
@@ -346,7 +339,6 @@ function on_session_connected(stype, session, proto_type, is_ws, is_encrypt) {
     session.proto_type = proto_type;
     session.is_connected = true;
     session.is_encrypt = is_encrypt;
-
     //扩展session的方法
     session.send_encoded_cmd = session_send_encoded_cmd;
     session.send_cmd = session_send_cmd;

@@ -139,11 +139,11 @@ function write_prorotype_inbuf(cmd_buf, proto_type) {
     write_int16(cmd_buf, 8, proto_type);
 }
 function write_utag_inbuf(cmd_buf, utag) {
-    write_uint32(cmd_buf, 4, utag);
+    write_int16(cmd_buf, 4, utag);
 }
 
 function clear_utag_inbuf(cmd_buf,) {
-    write_uint32(cmd_buf, 4, 0);
+    write_int16(cmd_buf, 4, 0);
 }
 /** 解码空字符 */
 function decode_empty_cmd(cmd_buf) {

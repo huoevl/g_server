@@ -1,3 +1,4 @@
+require("../3rd/extends");
 const net = require("net");
 const ws = require("ws");
 const proto_mgr = require("../netbus/proto_mgr");
@@ -12,7 +13,7 @@ sock.on("connect", () => {
     console.log("client connect !!!");
 
     //================tcp test==============
-    // sock.write(tcppkg.package_data("Hello"));
+    sock.write(tcppkg.package_data("Hello"));
 
     // let strArr = testTimout("Hel", "lo");
     // sock.write(strArr[0]);
@@ -65,22 +66,22 @@ function testTwo(data1, data2) {
 
 
 //test ws
-let ws_sock = new ws('ws://127.0.0.1:7082/');
-ws_sock.on("open", () => {
-    console.log("ws client connect !!!");
-    // let buf = Buffer.from("呵呵呵2");
-    // // ws_sock.send(buf);
-    // ws_sock.send("呵呵呵呵")
-    let data = { name: "Black", age: "10" };
-    let cmd = proto_mgr.encode_cmd(proto_mgr.PROTO_BUFF, 1, 1, data)
-    ws_sock.send(cmd);
-})
-ws_sock.on("error", (err) => {
-    console.log("ws error")
-})
-ws_sock.on("close", () => {
-    console.log("ws close");
-})
+// let ws_sock = new ws('ws://127.0.0.1:7082/');
+// ws_sock.on("open", () => {
+//     console.log("ws client connect !!!");
+//     // let buf = Buffer.from("呵呵呵2");
+//     // // ws_sock.send(buf);
+//     // ws_sock.send("呵呵呵呵")
+//     let data = { name: "Black", age: "10" };
+//     let cmd = proto_mgr.encode_cmd(proto_mgr.PROTO_BUFF, 1, 1, data)
+//     ws_sock.send(cmd);
+// })
+// ws_sock.on("error", (err) => {
+//     console.log("ws error")
+// })
+// ws_sock.on("close", () => {
+//     console.log("ws close");
+// })
 
 
 
