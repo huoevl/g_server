@@ -1,4 +1,4 @@
-var proto_mgr = require("../../netbus/proto_mgr.js");
+var proto_man = require("../../netbus/proto_man.js");
 var proto_tools = require("../../netbus/proto_tools.js");
 var log = require("../../utils/log.js");
 
@@ -108,7 +108,7 @@ function encode_user_enter(stype, ctype, body) {
 
 function encode_user_exit(stype, ctype, body) {
 	var uname_len = body.uname.utf8_byte_len();
-	var total_len =proto_tools.header_size + 2 + uname_len + 2;
+	var total_len = proto_tools.header_size + 2 + uname_len + 2;
 
 	var cmd_buf = proto_tools.alloc_buffer(total_len);
 	var offset = proto_tools.write_cmd_header_inbuf(cmd_buf, stype, ctype);
@@ -136,14 +136,14 @@ function encode_use_msg(stype, ctype, body) {
 	return cmd_buf;
 }
 
-proto_mgr.reg_encoder(1, 1, proto_tools.encode_status_cmd);
-proto_mgr.reg_encoder(1, 2, proto_tools.encode_status_cmd);
-proto_mgr.reg_encoder(1, 5, encode_send_msg_return_talkroom);
+proto_man.reg_encoder(1, 1, proto_tools.encode_status_cmd);
+proto_man.reg_encoder(1, 2, proto_tools.encode_status_cmd);
+proto_man.reg_encoder(1, 5, encode_send_msg_return_talkroom);
 
-proto_mgr.reg_encoder(1, 3, encode_user_enter);
-proto_mgr.reg_encoder(1, 4, encode_user_exit);
-proto_mgr.reg_encoder(1, 6, encode_use_msg);
+proto_man.reg_encoder(1, 3, encode_user_enter);
+proto_man.reg_encoder(1, 4, encode_user_exit);
+proto_man.reg_encoder(1, 6, encode_use_msg);
 
-proto_mgr.reg_decoder(1, 1, decode_enter_talkroom);
-proto_mgr.reg_decoder(1, 2, decode_exit_talkroom);
-proto_mgr.reg_decoder(1, 5, proto_tools.decode_str_cmd);
+proto_man.reg_decoder(1, 1, decode_enter_talkroom);
+proto_man.reg_decoder(1, 2, decode_exit_talkroom);
+proto_man.reg_decoder(1, 5, proto_tools.decode_str_cmd);

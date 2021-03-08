@@ -1,14 +1,14 @@
-require("../../init");
-const netbus = require("../../netbus/netbus");
-const proto_mgr = require("../../netbus/proto_mgr");
-const service_mgr = require("../../netbus/service_mgr");
-const talk_room = require("./talkromm");
+require("../../init.js");
+
+var proto_man = require("../../netbus/proto_man.js");
+var netbus = require("../../netbus/netbus.js");
+var service_manager = require("../../netbus/service_manager.js");
+var talk_room = require("./talkroom.js");
+
+netbus.start_tcp_server("127.0.0.1", 9084, false);
+netbus.start_ws_server("127.0.0.1", 9085, false);
 
 
-netbus.start_tcp_server("127.0.0.1", 7084, proto_mgr.PROTO_BUFF, false);
-netbus.start_tcp_server("127.0.0.1", 7085, proto_mgr.PROTO_JSON, false);
 
-// netbus.start_ws_server("127.0.0.1", 7082, proto_mgr.PROTO_BUFF, false);
-// netbus.start_ws_server("127.0.0.1", 7083, proto_mgr.PROTO_JSON, false);
+service_manager.register_service(1, talk_room);
 
-service_mgr.register_service(1, talk_room);
